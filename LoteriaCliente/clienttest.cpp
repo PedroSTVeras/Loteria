@@ -285,7 +285,6 @@ int main(){
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
-    //inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr); // Conectar ao localhost
 
     // Conectando ao servidor
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {

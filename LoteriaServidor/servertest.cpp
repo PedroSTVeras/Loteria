@@ -281,6 +281,9 @@ int main(){
         WSACleanup();
         return 1;
     }
+    else{
+        printf("Socket criado com sucesso!");
+    }
 
     // Configurando o endereço do servidor
     serverAddr.sin_family = AF_INET;
@@ -295,14 +298,16 @@ int main(){
         return 1;
     }
 
-    // Escutando por conexões
+    // Escutando por conexões...
     if (listen(serverSocket, 3) < 0) {
         printf("Erro ao escutar.");
         closesocket(serverSocket);
         WSACleanup();
         return 1;
     }
-    printf("Servidor escutando na porta %d...", PORT);
+    else{
+        printf("\nServidor escutando na porta %d...", PORT);
+    }
 
     // Aceitando uma conexão
     clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
@@ -312,11 +317,14 @@ int main(){
         WSACleanup();
         return 1;
     }
+    else{
+        printf("\n\nConexão aceita!");
+    }
 
     // Recebendo mensagem do cliente
     int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
     buffer[bytesReceived] = '\0'; // Null-terminating the string
-    printf("Mensagem recebida: ");
+    printf("\nMensagem recebida: %s", buffer);
 
     // Enviando resposta ao cliente
     const char* response = "Mensagem recebida com sucesso!";
