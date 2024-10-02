@@ -1,0 +1,4 @@
+Nome: teste
+CPF: 123.123.123-12
+Números apostados: 2, 2, 2, 2, 2, 2, 2, 2
+Valor da aposta: R$.00

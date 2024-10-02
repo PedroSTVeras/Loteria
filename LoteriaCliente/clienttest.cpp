@@ -16,79 +16,16 @@ using namespace std;
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
-//Modificar o valor (dinheiro) da aposta
-void modlinapos(const char *arcaposta,int linpost,float valornov){
-    FILE *file = fopen(arcaposta,"r");
-    if(!file){
-        printf("Arquivo inexistente");
-        return;
-    }
-    char lins[linpost][buflin];
-    int i = 0;
-
-    while(fgets(lins[i],sizeof(lins[i]),file)&& i < linapost) i++;
-    fclose(file);
-
-    if(linpost > 0 && linpost <=i){
-        snprintf(lins[linapost-1],sizeof(lins[linapost-1]),"Valor da aposta: R$%.2f\n",valornov);
-
-    }
-    else {
-        printf("Número da linha inválido.\n");
-        return;
-    }
-    file = fopen(arcaposta,"w");
-        if(!file){
-        printf("Arquivo inexistente");
-        return;
-    }
-    for (int j = 0; j < i; j++)fputs(lins[j],file);
-    fclose(file);
-    printf("Novo valor de aposta salvo!\n\n");
-    return;
-}
-
-//Modifica os números da aposta
-void modnum(const char *arcaposta,int linpost,int novnums[8]){
-    FILE *file = fopen(arcaposta,"r");
-    if(!file){
-        printf("Arquivo inexistente");
-        return;
-    }
-    char lins[linpost][buflin];
-    int i = 0;
-
-    while(fgets(lins[i],sizeof(lins[i]),file)&& i < linapost) i++;
-    fclose(file);
-
-    if(linpost > 0 && linpost <=i){
-        snprintf(lins[linapost - 2], sizeof(lins[linapost - 2]), "Números apostados: %d, %d, %d, %d, %d, %d, %d, %d\n", novnums[0], novnums[1], novnums[2],novnums[3], novnums[4], novnums[5],novnums[6], novnums[7], novnums[8]);
-    }
-    else {
-        printf("Número da linha inválido.\n");
-        return;
-    }
-    file = fopen(arcaposta,"w");
-        if(!file){
-        printf("Arquivo inexistente");
-        return;
-    }
-    for (int j = 0; j < i; j++)fputs(lins[j],file);
-    fclose(file);
-    printf("Novos números de aposta salvos!\n\n");
-    return;
-}
-
-//Faz as apostas do jogador
+//FAZER APOSTAS
 void aposta(SOCKET cs){
-    //Pede nome ao cliente
+    //NOME DO CLIENTE
     printf("\nInsira seu nome: \n");
     char nome[20];
     scanf("%s",nome);
     send(cs, nome, strlen(nome), 0); //Envia Nome
     printf("\n%s",nome);
 
-    //Pede o CPF ao cliente
+    //CPF DO CLIENTE
     char cpf[12];
     printf(", insira seu CPF: \n");
     scanf("%s",&cpf);
@@ -103,7 +40,7 @@ void aposta(SOCKET cs){
     printf("\nSeu CPF é %s",cpfform);
     send(cs, cpf, strlen(cpf), 0); //Envia CPF
 
-    //Pede os números da aposta do jogador
+    //NÚMEROS Q SERÃO APOSTADOS
     int apostan [8];
     printf("\nInsira 8 números de 1 a 20 (um de cada vez):\n");
     for(int i = 0;i<8;i++){
@@ -147,7 +84,7 @@ void aposta(SOCKET cs){
     apostaSend[aux] = apostan[7] + '0';
     send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
 
-    //Pergunta a usuário quanto dinheiro apostar
+    //DINHEIRO A SER APOSTADO
     char filename[30];
     int valoraposta = 0;
     printf("Quanto deseja apostar (R$1 a R$1000)?\nR$");
@@ -159,15 +96,15 @@ void aposta(SOCKET cs){
         if(valoraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
         scanf("%f",&valoraposta);
     }
-
     char money[6] = {0};
     sprintf(money,"%ld", valoraposta);
     send(cs, money, strlen(money), 0); //Envia dinheiro apostado
 
+    //Aposta registrada
     printf("Aposta registrada com sucesso\n");
 }
 
-//Consultar Aposta
+//CONSULTAR APOSTAS
 void conaposta(SOCKET cs) {
     char msg[BUFFER_SIZE] = {0};
     char cpf[11];
@@ -190,47 +127,45 @@ void conaposta(SOCKET cs) {
     recv(cs, msg, sizeof(msg), 0);
     printf("\nServidor: %s\n", msg);
 
-    //Se servidor encontrou arquivo, mostrar ao cliente
+    //Se o servidor encontrou arquivo, mostrar os dados da aposta ao cliente
     if (strcmp(msg, "Arquivo encontrado!\n")==0){
         for(int i = 0; i< 4;i++){
             recv(cs, msg, sizeof(msg), 0);
             printf("%s", msg);
-            send(cs, "Redeived!", 20, 0);
+            send(cs, "Received!", 20, 0);
         }
 
-        //Pergunta o que fazer
+        //Pergunta o que fazer com os dados
         printf("\nO que deseja fazer?\n");
         printf(" 1- Alterar valor da aposta\n 2- Alterar os números\n 3- Remover aposta\n 4- Voltar\n");
         scanf("%d", &opera);
 
         switch (opera) {
-            case 1:{
+            case 1:{//ALTERAR A QUANTIDADE DE DINHEIRO ALTERADO
                 //Enviar para o server q qr alterar
                 send(cs, "1", 1, 0);
-                //Alterar a quantidade de dinheiro apostado
                 printf("\nInsira o novo valor para a aposta: R$");
                 int novovaloraposta;
                 scanf("%d", &novovaloraposta);
+                //checar se a aposta é válida
                 while (novovaloraposta < 1 || novovaloraposta > 1000) {
                     printf("\nInsira um valor válido!\n");
                     if(novovaloraposta<1)printf("Motivo: O valor mínimo da aposta é R$1\nR$");
                     if(novovaloraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
                     scanf("%d", &novovaloraposta);
                 }
-
+                //Enviar ao servidor novo valor da aposta
                 char aux[BUFFER_SIZE] = {0};
                 sprintf(aux,"%ld", novovaloraposta);
                 send(cs, aux, sizeof(aux), 0);
                 recv(cs, aux, sizeof(aux), 0);
-                printf("%s",aux);
+                printf("%s",aux);// Recebe se a troca teve sucesso
 
                 break;
             }
             case 2:{
-                //Enviar para o server q qr alterar
+                //ALTERAR OS NÚMEROS APOSTADOS
                 send(cs, "2", 1, 0);
-
-                //Pede os números da aposta do jogador
                 printf("\nInsira 8 números de 1 a 20 (um de cada vez):\n");
                 for(int i = 0;i<8;i++){
                     while(1){ //Loop até coletar todos os números
@@ -256,8 +191,7 @@ void conaposta(SOCKET cs) {
                         }
                     }
                 }
-
-                //Escreve números apostados
+                //Escreve números apostados em um char
                 char apostaSend[BUFFER_SIZE] = {0};
                 printf("\nNúmeros apostados: ");
                 int aux = 0;
@@ -273,21 +207,21 @@ void conaposta(SOCKET cs) {
                 printf("%d.\n",apostan[7]);
                 apostaSend[aux] = apostan[7] + '0';
                 send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
-                recv(cs, apostaSend, sizeof(apostaSend), 0);
+                recv(cs, apostaSend, sizeof(apostaSend), 0); //Recebe se a troca teve sucesso
                 printf("%s",apostaSend);
 
                 break;
             }
             case 3:{
-                //Apagar aposta/arquivo
+                //APAGAR APOSTA/ARQUIVO
                 send(cs, "3", 1, 0);
                 char aux[BUFFER_SIZE] = {0};
-                recv(cs, aux, sizeof(aux), 0);
+                recv(cs, aux, sizeof(aux), 0);//recebe se foi deletado com sucesso
                 printf("%s",aux);
                 break;
             }
             case 4:{
-                //Voltar
+                //VOLTAR
                 printf("\n");
                 break;
             }
@@ -340,7 +274,7 @@ int main(){
     char response[BUFFER_SIZE];
     int bytesReceived = recv(clientSocket, response, BUFFER_SIZE, 0);
 
-    //Apresenta as opções ao cliente
+    //Apresenta as opções ao cliente (loop)
     int opcao = 0;
     while(opcao != 3){
 
@@ -349,23 +283,23 @@ int main(){
         //Pede input do cliente (1, 2 ou 3)
         scanf("%d",&opcao);
         switch(opcao){
-            //Cria uma nova aposta
+            //1 - CRIAR NOVA APOSTA
             case 1:
             send(clientSocket, "Nova aposta", 11, 0);
             aposta(clientSocket);
             break;
-            //Consulta uma aposta
+            //2 - CONSULTAR APOSTA JÁ FEITA
             case 2:
             send(clientSocket, "Consultar aposta", 16, 0);
             conaposta(clientSocket);
             break;
-            //Fecha a conexão
+            //3 - ENCERRAR CONEXÃO E FECHAR CLIENTE
             case 3:
             printf("Desconectando do servidor!\n");
             closesocket(clientSocket);// Fechando o socket
             WSACleanup();
             break;
-            //Número inválido
+            //Número inválido, tente de novo
             default:
                 printf("Operação inválida, insira uma opção válida (1, 2, 3):\n");
                 break;

@@ -80,94 +80,6 @@ void modnum(const char *arcaposta,int linpost,char *novnums){
     return;
 }
 
-//Faz as apostas do jogador
-void aposta(){
-    //Pede nome ao cliente
-    printf("\nInsira seu nome: \n");
-    char nome[20];
-    scanf("%s",nome);
-    printf("\n%s",nome);
-    //Pede o CPF ao cliente
-    char cpf[12];
-    printf(", insira seu CPF: \n");
-    scanf("%s",&cpf);
-    //Verifica se o CPF é válido (11 dígitos), se n for, pede denovo
-    while(strlen(cpf)!=11){
-        printf("\nInsira um CPF válido (11 dígitios, sem hífen ou pontos):\n");
-        scanf("%s",cpf);
-    }
-    //Transforma o CPF no formato certo
-    char cpfform[15];
-    snprintf(cpfform, sizeof(cpfform), "%c%c%c.%c%c%c.%c%c%c-%c%c",cpf[0], cpf[1], cpf[2],cpf[3], cpf[4], cpf[5],cpf[6], cpf[7], cpf[8],cpf[9], cpf[10]);
-    printf("\nSeu CPF é %s",cpfform);
-
-    //Pede os números da aposta do jogador
-    int apostan [8];
-    printf("\nInsira 8 números de 1 a 20 (um de cada vez):\n");
-    for(int i = 0;i<8;i++){
-        while(1){ //Loop até coletar todos os números
-            scanf("%d",&apostan[i]);
-            if(apostan[i] >=1 && apostan[i]<=20){
-                    if (i < 7)
-                        printf("Insira mais %d números (1 a 20):\n", 7-i);
-                    break; //Sair do loop após coletar todos números
-            }
-            else
-            {
-            printf("Insira uma aposta válida:\n");
-            }
-        }
-    }
-    //Organiza os números apostados em ordem crescente
-    for (int j = 0; j < 7; j++) {
-        for (int k = 0; k < 7 - j; k++) {
-            if (apostan[k] > apostan[k + 1]) {
-                int temp = apostan[k];
-                apostan[k] = apostan[k + 1];
-                apostan[k + 1] = temp;
-            }
-        }
-    }
-
-    //Escreve números apostados
-    printf("\nNúmeros apostados: ");
-    for(int i = 0; i <7; i++)printf("%d, ",apostan[i]);
-    printf("%d.\n",apostan[7]);
-    //Pergunta a usuário quanto dinheiro apostar
-    char filename[30];
-    float valoraposta = 0;
-    printf("Quanto deseja apostar (R$1 a R$1000)?\nR$");
-    scanf("%f",&valoraposta);
-    //Mensagem de erro se aposta for inválida
-    while(valoraposta <1 || valoraposta > 1000){
-        printf("\nInsira um valor válido!\n");
-        if(valoraposta<1)printf("Motivo: O valor mínimo da aposta é R$1\nR$");
-        if(valoraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
-        scanf("%f",&valoraposta);
-    }
-    //Cria arquivo
-    snprintf(filename, sizeof(filename), "aposta_%s.txt", cpf);
-    FILE *arcaposta = fopen(filename, "w");
-    if (arcaposta == NULL) {
-        printf("Erro ao abrir o arquivo %s!\n", filename);
-        return;
-    }
-    //Salva os dados no arquivo
-    fprintf(arcaposta, "Nome: %s\n", nome);
-    fprintf(arcaposta, "CPF: %s\n", cpfform);
-    fprintf(arcaposta, "Números apostados: ");
-    for (int i = 0; i < 8; i++) {
-        fprintf(arcaposta, "%d", apostan[i]);
-        if (i < 7) {
-            fprintf(arcaposta, ", ");
-        }
-    }
-    fprintf(arcaposta, "\n");
-    fprintf(arcaposta, "Valor da aposta: R$%.2f\n",valoraposta);
-    fclose(arcaposta);
-    printf("Aposta registrada com sucesso em %s\n\n", filename);
-}
-
 //Lida com o cliente após se conectar (threads)
 void handle_client(SOCKET clientSocket, int id) {
     char msg[BUFFER_SIZE] = {0};
@@ -182,12 +94,13 @@ void handle_client(SOCKET clientSocket, int id) {
     const char *reply = "BEM VINDO A APOSTAS TOTALMENTE LEGÍTIMAS\nO que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair";
     send(clientSocket, reply, strlen(reply), 0);
 
+    //LOOP DO CLIENTE
     while(true){
         memset(msg,0,sizeof(msg));//Limpar mensagem
         recv(clientSocket, msg, sizeof(msg), 0);//Receber mensagem do cleinte
         printf("Cliente %d enviou: %s\n", id, msg);//Imprimir mensagem recebida
 
-        //1- Coletar dados do cliente e salvar em um arquivo
+        //1- FAZER UMA NOVA APOSTA
         if (strcmp(msg, "Nova aposta")==0){
             //Receber mensagem com o nome
             printf("\nEsperando receber o nome...\n");
@@ -234,7 +147,7 @@ void handle_client(SOCKET clientSocket, int id) {
             printf("Aposta registrada com sucesso em %s\n\n", filename);
         }
 
-        //2 - Consultar arquivo de apostas e alterar itens
+        //2 - CONSULTAR APOSTAS
         else if (strcmp(msg, "Consultar aposta")==0){
             //Receber mensagem com o CPF
             printf("\nEsperando receber o CPF para verificar arquivos...\n");
@@ -245,7 +158,7 @@ void handle_client(SOCKET clientSocket, int id) {
             //Procurando arquivo com o CPF
             snprintf(apostaarc, sizeof(apostaarc), "aposta_%s.txt", cpf);
             FILE *file = fopen(apostaarc, "r");
-            //Se encontrou o arquivo!
+            //SE ENCONTROU O ARQUIVO:
             if (file != NULL) {
                 char linhas[256] = {0};
                 printf("\nArquivo encontrado!\n");
@@ -258,9 +171,10 @@ void handle_client(SOCKET clientSocket, int id) {
                     recv(clientSocket, msg, sizeof(msg), 0);
                 }
 
-                //Alterar dados
+                //RECEBER ESCOLHA DO CLIENTE SOBRE O QUE FAZER COM A APOSTA CONSULTADA
                 char* opcao;
-                recv(clientSocket, opcao, sizeof(opcao), 0);//Valor apostado
+                recv(clientSocket, opcao, sizeof(opcao), 0);
+                //1) ALTERAR A QUANTIDADE DE DINHEIRO APOSTADO
                 if (strcmp(opcao, "1")==0){
                     char valornov[BUFFER_SIZE] = {0};
                     printf("\nCliente %d quer alterar o valor apostado!\n", id);
@@ -269,16 +183,16 @@ void handle_client(SOCKET clientSocket, int id) {
                     printf("\nCliente %d quer alterar o valor apostado para %s\n", id, valornov);
                     modlinapos(apostaarc,4,valornov);
                     send(clientSocket, "Dados alterados com sucesso.\n\n", 30, 0);
-                }
-                else if (strcmp(opcao, "2")==0){//Numeros apostados
+                }//2) ALTERAR OS NÚMEROS QUE FORAM APOSTADOS
+                else if (strcmp(opcao, "2")==0){
                     char numnov[BUFFER_SIZE] = {0};
                     printf("\nCliente %d quer alterar os numeros apostados!\n", id);
                     recv(clientSocket, numnov, sizeof(numnov), 0);
                     printf("\nCliente %d quer alterar os numeros apostados para %s\n", id, numnov);
                     modnum(apostaarc,4,numnov);
                     send(clientSocket, "Dados alterados com sucesso.\n\n", 30, 0);
-                }
-                else if (strcmp(opcao, "3")==0){//Deletar aposta
+                }//3) DELETAR A APOSTA
+                else if (strcmp(opcao, "3")==0){
                     fclose(file);
                     if (remove(apostaarc) == 0){
                         printf("Aposta apagada!\n\n");
@@ -289,7 +203,7 @@ void handle_client(SOCKET clientSocket, int id) {
                         send(clientSocket, "Erro: Aposta não foi apagada!\n\n", 30, 0);
                     }
                 }
-                else{//Voltar
+                else{//4) VOLTAR
                     fclose(file);
                 }
             }
@@ -299,8 +213,7 @@ void handle_client(SOCKET clientSocket, int id) {
             send(clientSocket, "Seu CPF não foi encontrado.\n\n", 30, 0);
             }
         }
-        else{
-        // Fechando o socket do cliente
+        else{//3- CLIENTE DISCONECTOU
         printf("Cliente %d encerrou a conexão\n", id);
         closesocket(clientSocket);
         return;
