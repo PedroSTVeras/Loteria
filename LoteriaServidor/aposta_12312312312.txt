@@ -1,4 +1,4 @@
 Nome: qwerty
 CPF: 123.123.123-12
 Números apostados: 2, 2, 3, 4, 5, 5, 5, 6
-Valor da aposta: R$0,00
+Valor da aposta: R$.00

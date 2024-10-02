@@ -192,7 +192,7 @@ void conaposta(SOCKET cs) {
 
     //Se servidor encontrou arquivo, mostrar ao cliente
     if (strcmp(msg, "Arquivo encontrado!\n")==0){
-        for (int i = 0; i<5; i++){//Esse 4 tem q trocar para o numero de linhas q o servido leu do arquivo
+        for (int i = 0; i<4; i++){//Esse 5 tem q trocar para o numero de linhas q o servido leu do arquivo
             recv(cs, msg, sizeof(msg), 0);
             printf("%s", msg);
         }
@@ -203,21 +203,29 @@ void conaposta(SOCKET cs) {
         scanf("%d", &opera);
 
         switch (opera) {
-            case 1:
+            case 1:{
+                //Enviar para o server q qr alterar
+                send(cs, "1", 1, 0);
                 //Alterar a quantidade de dinheiro apostado
                 printf("\nInsira o novo valor para a aposta: R$");
-                float novovaloraposta;
-                scanf("%f", &novovaloraposta);
+                int novovaloraposta;
+                scanf("%d", &novovaloraposta);
                 while (novovaloraposta < 1 || novovaloraposta > 1000) {
                     printf("\nInsira um valor válido!\n");
                     if(novovaloraposta<1)printf("Motivo: O valor mínimo da aposta é R$1\nR$");
                     if(novovaloraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
-                    scanf("%f", &novovaloraposta);
+                    scanf("%d", &novovaloraposta);
                 }
-                modlinapos(apostaarc,4,novovaloraposta);
-                break;
 
-            case 2:
+                char aux[BUFFER_SIZE] = {0};
+                sprintf(aux,"%ld", novovaloraposta);
+                send(cs, aux, sizeof(aux), 0);
+                //modlinapos(apostaarc,4,novovaloraposta);
+
+
+                break;
+            }
+            case 2:{
                 //Pede os números da aposta do jogador
                 printf("\nInsira 8 números de 1 a 20 (um de cada vez):\n");
                 for(int i = 0;i<8;i++){
@@ -246,19 +254,20 @@ void conaposta(SOCKET cs) {
                 }
                 modnum(apostaarc,4,apostan);
                 break;
-
-            case 3:
+            }
+            case 3:{
                 //Apagar aposta/arquivo
                 if (remove(apostaarc) == 0)
                     printf("Aposta apagada!\n\n");
                 else
                     printf("Erro: Aposta não foi apagada!\n\n");
                 break;
-
-            case 4:
+            }
+            case 4:{
                 //Voltar
                 printf("\n");
                 break;
+            }
         }
     }
 }
