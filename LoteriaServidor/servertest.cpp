@@ -81,7 +81,7 @@ void modnum(const char *arcaposta,int linpost,int novnums[8]){
 }
 
 //Faz as apostas do jogador
-void aposta(int idap){
+void aposta(){
     //Pede nome ao cliente
     printf("\nInsira seu nome: \n");
     char nome[20];
@@ -261,18 +261,36 @@ void conaposta() {
 }
 
 //Lida com o cliente após se conectar (threads)
-void handle_client(SOCKET clientSocket) {
-    char message[1024] = {0};
+void handle_client(SOCKET clientSocket, int id) {
+    char msg[1024] = {0};
 
     // Recebendo mensagem do cliente
-    recv(clientSocket, message, sizeof(message), 0);
-    std::cout << "Mensagem recebida do cliente: " << message << std::endl;
+    recv(clientSocket, msg, sizeof(msg), 0);
+    printf("Mensagem recebida do cliente %d: %s\n", id, msg);
 
     // Enviando resposta ao cliente
-    const char *reply = "Mensagem recebida com sucesso!";
+    const char *reply = "BEM VINDO A APOSTAS TOTALMENTE LEGÍTIMAS\nO que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair";
     send(clientSocket, reply, strlen(reply), 0);
 
+    while(true){
+        memset(msg,0,sizeof(msg));//Limpar mensagem
+        recv(clientSocket, msg, sizeof(msg), 0);//Receber mensagem do cleinte
+        printf("Cliente %d enviou: %s\n", id, msg);//Imprimir mensagem recebida
+
+        if (msg == "Nova aposta"){
+
+            break;
+        }
+
+        //Desconectar cliente
+        if (msg == "3"){
+            break;
+        }
+    }
+
+
     // Fechando o socket do cliente
+    printf("Cliente %d encerrou a conexão\n", id);
     closesocket(clientSocket);
 }
 
@@ -316,21 +334,22 @@ int main(){
 
     // Escutando conexões
     listen(serverSocket, 3);
-    std::cout << "Aguardando conexões..." << std::endl;
+    printf("\nAguardando conexões...");
 
     int c = sizeof(struct sockaddr_in);
+    int idCliente = 0;
 
     // Loop infinito para aceitar múltiplos clientes (threads)
     while (true) {
         clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &c);
         if (clientSocket == INVALID_SOCKET) {
-            std::cerr << "Falha ao aceitar conexão. Código de erro: " << WSAGetLastError() << std::endl;
+            printf("Falha ao aceitar conexão. Código de erro: %s", WSAGetLastError);
             continue;
         }
-        std::cout << "Conexão aceita!" << std::endl;
+        printf("\nConexão aceita!\n");
 
         // Criar uma nova thread para lidar com o cliente
-        std::thread clientThread(handle_client, clientSocket);
+        std::thread clientThread(handle_client, clientSocket, idCliente++);
         clientThread.detach(); // Permite que a thread rode independentemente
     }
 

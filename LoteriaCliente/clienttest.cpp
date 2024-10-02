@@ -80,11 +80,12 @@ void modnum(const char *arcaposta,int linpost,int novnums[8]){
 }
 
 //Faz as apostas do jogador
-void aposta(int idap){
+void aposta(SOCKET cs){
     //Pede nome ao cliente
     printf("\nInsira seu nome: \n");
     char nome[20];
     scanf("%s",nome);
+    send(cs, nome, strlen(nome), 0);
     printf("\n%s",nome);
     //Pede o CPF ao cliente
     char cpf[12];
@@ -144,6 +145,8 @@ void aposta(int idap){
         if(valoraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
         scanf("%f",&valoraposta);
     }
+
+
     //Cria arquivo
     snprintf(filename, sizeof(filename), "aposta_%s.txt", cpf);
     FILE *arcaposta = fopen(filename, "w");
@@ -288,49 +291,52 @@ int main(){
 
     // Conectando ao servidor
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        std::cerr << "Erro ao conectar ao servidor." << std::endl;
+        printf("Erro ao conectar ao servidor.");
         closesocket(clientSocket);
         WSACleanup();
         return 1;
+    }
+    else{
+        printf("Conectado ao servidor!\n");
     }
 
     // Enviando mensagem ao servidor
     send(clientSocket, buffer, strlen(buffer), 0);
 
-    // Recebendo resposta do servidor (Mensagem recebida com sucesso!)
+    // Recebendo resposta inicial do servidor ("Seleciona uma opção")
     char response[BUFFER_SIZE];
     int bytesReceived = recv(clientSocket, response, BUFFER_SIZE, 0);
-    response[bytesReceived] = '\0'; // Null-terminando a string
-    std::cout << "Resposta do servidor: " << response << std::endl;
 
+    //Apresenta as opções ao cliente
+    int opcao = 0;
+    while(opcao != 3){
 
+        printf("\n%s\n\n", response);
 
-    // Fechando o socket
-    closesocket(clientSocket);
-    WSACleanup();
-
-    int opera = 0;
-    int idap = 1;
-    while(opera != 3){
-        printf("BEM VINDO A APOSTAS TOTALMENTE LEGÍTIMAS\nO que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair \n");
-        scanf("%d",&opera);
-        switch(opera){
+        //Pede input do cliente (1, 2 ou 3)
+        scanf("%d",&opcao);
+        switch(opcao){
+            //Cria uma nova aposta
             case 1:
-            aposta(idap++);
-            //printf("Aposta concluída, o que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair \n");
+            send(clientSocket, "Nova aposta", 11, 0);
+            aposta(clientSocket);
             break;
+            //Consulta uma aposta
             case 2:
             conaposta();
             break;
+            //Fecha a conexão
             case 3:
-            opera = 3;
+            printf("Desconectando do servidor!\n");
+            closesocket(clientSocket);// Fechando o socket
+            WSACleanup();
             break;
+            //Número inválido
             default:
-                while(opera<1 || opera>3){
-                    printf("\nOperação inválida, insira uma opção válida (1, 2, 3):\n");
-                    break;
-                }
+                printf("Operação inválida, insira uma opção válida (1, 2, 3):\n");
+                break;
+            }
         }
-    }
+
     return 0;
 }
