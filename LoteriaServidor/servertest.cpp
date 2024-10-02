@@ -262,7 +262,7 @@ void conaposta() {
 
 //Lida com o cliente após se conectar (threads)
 void handle_client(SOCKET clientSocket, int id) {
-    char msg[1024] = {0};
+    char msg[BUFFER_SIZE] = {0};
 
     // Recebendo mensagem do cliente
     recv(clientSocket, msg, sizeof(msg), 0);
@@ -277,14 +277,51 @@ void handle_client(SOCKET clientSocket, int id) {
         recv(clientSocket, msg, sizeof(msg), 0);//Receber mensagem do cleinte
         printf("Cliente %d enviou: %s\n", id, msg);//Imprimir mensagem recebida
 
-        if (msg == "Nova aposta"){
+        //Coletar dados do cliente e salvar em um arquivo
+        if (strcmp(msg, "Nova aposta")==0){
+            //Receber mensagem com o nome
+            printf("\nEsperando receber o nome...\n");
+            char nome[BUFFER_SIZE] = {0};
+            recv(clientSocket, nome, sizeof(nome), 0);
+            printf("Nome do cliente %d é %s\n", id, nome);
 
-            break;
-        }
+            //Receber mensagem com o CPF
+            printf("\nEsperando receber o CPF...\n");
+            char cpf[BUFFER_SIZE] = {0};
+            recv(clientSocket, cpf, sizeof(cpf), 0);
+            //printf("CPF do cliente %d é %s\n", id, cpf);
+            //Formata cpf
+            char cpfform[15];
+            snprintf(cpfform, sizeof(cpfform), "%c%c%c.%c%c%c.%c%c%c-%c%c",cpf[0], cpf[1], cpf[2],cpf[3], cpf[4], cpf[5],cpf[6], cpf[7], cpf[8],cpf[9], cpf[10]);
+            printf("CPF do cliente %d é %s\n", id, cpfform);
 
-        //Desconectar cliente
-        if (msg == "3"){
-            break;
+            //Receber mensagem com os números
+            printf("\nEsperando receber os números da aposta...\n");
+            char numAp[BUFFER_SIZE] = {0};
+            recv(clientSocket, numAp, sizeof(numAp), 0);
+            printf("Números apostados pelo cliente %d são %s\n", id, numAp);
+
+            //Receber mensagem com o dinheiro
+            printf("\nEsperando receber o valor apostado...\n");
+            char valor[BUFFER_SIZE] = {0};
+            recv(clientSocket, valor, sizeof(valor), 0);
+            printf("A quantidade de dinheiro apostado pelo cliente %d é %s\n", id, valor);
+
+            //Criar arquivo
+            char filename[30];
+            snprintf(filename, sizeof(filename), "aposta_%s.txt", cpf);
+            FILE *arcaposta = fopen(filename, "w");
+            if (arcaposta == NULL) {
+                printf("Erro ao abrir o arquivo %s!\n", filename);
+                return;
+            }
+            //Salva os dados no arquivo
+            fprintf(arcaposta, "Nome: %s\n", nome);
+            fprintf(arcaposta, "CPF: %s\n", cpfform);
+            fprintf(arcaposta, "Números apostados: %s\n", numAp);
+            fprintf(arcaposta, "Valor da aposta: R$%s.00\n",valor);
+            fclose(arcaposta);
+            printf("Aposta registrada com sucesso em %s\n\n", filename);
         }
     }
 

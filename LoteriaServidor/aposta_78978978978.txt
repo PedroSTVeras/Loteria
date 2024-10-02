@@ -1,0 +1,4 @@
+Nome: tyu
+CPF: 789.789.789-78
+Números apostados: 2, 2, 3, 3, 4, 4, 6, 7
+Valor da aposta: R$999.2f

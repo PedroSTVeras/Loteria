@@ -85,8 +85,9 @@ void aposta(SOCKET cs){
     printf("\nInsira seu nome: \n");
     char nome[20];
     scanf("%s",nome);
-    send(cs, nome, strlen(nome), 0);
+    send(cs, nome, strlen(nome), 0); //Envia Nome
     printf("\n%s",nome);
+
     //Pede o CPF ao cliente
     char cpf[12];
     printf(", insira seu CPF: \n");
@@ -100,6 +101,7 @@ void aposta(SOCKET cs){
     char cpfform[15];
     snprintf(cpfform, sizeof(cpfform), "%c%c%c.%c%c%c.%c%c%c-%c%c",cpf[0], cpf[1], cpf[2],cpf[3], cpf[4], cpf[5],cpf[6], cpf[7], cpf[8],cpf[9], cpf[10]);
     printf("\nSeu CPF é %s",cpfform);
+    send(cs, cpf, strlen(cpf), 0); //Envia CPF
 
     //Pede os números da aposta do jogador
     int apostan [8];
@@ -128,16 +130,28 @@ void aposta(SOCKET cs){
             }
         }
     }
-
     //Escreve números apostados
+    char apostaSend[BUFFER_SIZE] = {0};
     printf("\nNúmeros apostados: ");
-    for(int i = 0; i <7; i++)printf("%d, ",apostan[i]);
+    int aux = 0;
+    for(int i = 0; i <7; i++){
+        printf("%d, ",apostan[i]);
+        apostaSend[aux] = apostan[i] + '0';
+        aux++;
+        apostaSend[aux] = ',';
+        aux++;
+        apostaSend[aux] = ' ';
+        aux++;
+    }
     printf("%d.\n",apostan[7]);
+    apostaSend[aux] = apostan[7] + '0';
+    send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
+
     //Pergunta a usuário quanto dinheiro apostar
     char filename[30];
-    float valoraposta = 0;
+    int valoraposta = 0;
     printf("Quanto deseja apostar (R$1 a R$1000)?\nR$");
-    scanf("%f",&valoraposta);
+    scanf("%d",&valoraposta);
     //Mensagem de erro se aposta for inválida
     while(valoraposta <1 || valoraposta > 1000){
         printf("\nInsira um valor válido!\n");
@@ -146,28 +160,11 @@ void aposta(SOCKET cs){
         scanf("%f",&valoraposta);
     }
 
+    char money[6] = {0};
+    sprintf(money,"%ld", valoraposta);
+    send(cs, money, strlen(money), 0); //Envia dinheiro apostado
 
-    //Cria arquivo
-    snprintf(filename, sizeof(filename), "aposta_%s.txt", cpf);
-    FILE *arcaposta = fopen(filename, "w");
-    if (arcaposta == NULL) {
-        printf("Erro ao abrir o arquivo %s!\n", filename);
-        return;
-    }
-    //Salva os dados no arquivo
-    fprintf(arcaposta, "Nome: %s\n", nome);
-    fprintf(arcaposta, "CPF: %s\n", cpfform);
-    fprintf(arcaposta, "Números apostados: ");
-    for (int i = 0; i < 8; i++) {
-        fprintf(arcaposta, "%d", apostan[i]);
-        if (i < 7) {
-            fprintf(arcaposta, ", ");
-        }
-    }
-    fprintf(arcaposta, "\n");
-    fprintf(arcaposta, "Valor da aposta: R$%.2f\n",valoraposta);
-    fclose(arcaposta);
-    printf("Aposta registrada com sucesso em %s\n\n", filename);
+    printf("Aposta registrada com sucesso\n");
 }
 
 //Consultar Aposta

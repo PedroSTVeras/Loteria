@@ -1,0 +1,4 @@
+Nome: 1
+CPF: 123.456.789-01
+Números apostados: 
+Valor da aposta: R$.00
