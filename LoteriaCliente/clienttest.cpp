@@ -192,8 +192,11 @@ void conaposta(SOCKET cs) {
 
     //Se servidor encontrou arquivo, mostrar ao cliente
     if (strcmp(msg, "Arquivo encontrado!\n")==0){
-        recv(cs, msg, sizeof(msg), 0);
-        printf("%s", msg);
+        for(int i = 0; i< 4;i++){
+            recv(cs, msg, sizeof(msg), 0);
+            printf("%s", msg);
+            send(cs, "Redeived!", 20, 0);
+        }
 
         //Pergunta o que fazer
         printf("\nO que deseja fazer?\n");
@@ -224,6 +227,9 @@ void conaposta(SOCKET cs) {
                 break;
             }
             case 2:{
+                //Enviar para o server q qr alterar
+                send(cs, "2", 1, 0);
+
                 //Pede os números da aposta do jogador
                 printf("\nInsira 8 números de 1 a 20 (um de cada vez):\n");
                 for(int i = 0;i<8;i++){
@@ -250,15 +256,34 @@ void conaposta(SOCKET cs) {
                         }
                     }
                 }
-                modnum(apostaarc,4,apostan);
+
+                //Escreve números apostados
+                char apostaSend[BUFFER_SIZE] = {0};
+                printf("\nNúmeros apostados: ");
+                int aux = 0;
+                for(int i = 0; i <7; i++){
+                    printf("%d, ",apostan[i]);
+                    apostaSend[aux] = apostan[i] + '0';
+                    aux++;
+                    apostaSend[aux] = ',';
+                    aux++;
+                    apostaSend[aux] = ' ';
+                    aux++;
+                }
+                printf("%d.\n",apostan[7]);
+                apostaSend[aux] = apostan[7] + '0';
+                send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
+                recv(cs, apostaSend, sizeof(apostaSend), 0);
+                printf("%s",apostaSend);
+
                 break;
             }
             case 3:{
                 //Apagar aposta/arquivo
-                if (remove(apostaarc) == 0)
-                    printf("Aposta apagada!\n\n");
-                else
-                    printf("Erro: Aposta não foi apagada!\n\n");
+                send(cs, "3", 1, 0);
+                char aux[BUFFER_SIZE] = {0};
+                recv(cs, aux, sizeof(aux), 0);
+                printf("%s",aux);
                 break;
             }
             case 4:{

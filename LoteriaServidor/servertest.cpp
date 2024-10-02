@@ -50,7 +50,7 @@ void modlinapos(const char *arcaposta,int linpost,char *valornov){
 }
 
 //Modifica os números da aposta
-void modnum(const char *arcaposta,int linpost,int novnums[8]){
+void modnum(const char *arcaposta,int linpost,char *novnums){
     FILE *file = fopen(arcaposta,"r");
     if(!file){
         printf("Arquivo inexistente");
@@ -63,7 +63,7 @@ void modnum(const char *arcaposta,int linpost,int novnums[8]){
     fclose(file);
 
     if(linpost > 0 && linpost <=i){
-        snprintf(lins[linapost - 2], sizeof(lins[linapost - 2]), "Números apostados: %d, %d, %d, %d, %d, %d, %d, %d\n", novnums[0], novnums[1], novnums[2],novnums[3], novnums[4], novnums[5],novnums[6], novnums[7], novnums[8]);
+        snprintf(lins[linapost - 2], sizeof(lins[linapost - 2]), "Números apostados: %s\n", novnums);
     }
     else {
         printf("Número da linha inválido.\n");
@@ -254,13 +254,13 @@ void handle_client(SOCKET clientSocket, int id) {
                 send(clientSocket, "Arquivo encontrado!\n", 30, 0);
                 while (fgets(linhas, sizeof(linhas), file)) {
                     printf("%s", linhas); //Escreve as linhas do arquivo
-
+                    send(clientSocket, linhas, sizeof(linhas), 0);
+                    recv(clientSocket, msg, sizeof(msg), 0);
                 }
-                send(clientSocket, linhas, sizeof(linhas), 0);
 
                 //Alterar dados
                 char* opcao;
-                recv(clientSocket, opcao, sizeof(opcao), 0);
+                recv(clientSocket, opcao, sizeof(opcao), 0);//Valor apostado
                 if (strcmp(opcao, "1")==0){
                     char valornov[BUFFER_SIZE] = {0};
                     printf("\nCliente %d quer alterar o valor apostado!\n", id);
@@ -270,19 +270,40 @@ void handle_client(SOCKET clientSocket, int id) {
                     modlinapos(apostaarc,4,valornov);
                     send(clientSocket, "Dados alterados com sucesso.\n\n", 30, 0);
                 }
+                else if (strcmp(opcao, "2")==0){//Numeros apostados
+                    char numnov[BUFFER_SIZE] = {0};
+                    printf("\nCliente %d quer alterar os numeros apostados!\n", id);
+                    recv(clientSocket, numnov, sizeof(numnov), 0);
+                    printf("\nCliente %d quer alterar os numeros apostados para %s\n", id, numnov);
+                    modnum(apostaarc,4,numnov);
+                    send(clientSocket, "Dados alterados com sucesso.\n\n", 30, 0);
+                }
+                else if (strcmp(opcao, "3")==0){//Deletar aposta
+                    fclose(file);
+                    if (remove(apostaarc) == 0){
+                        printf("Aposta apagada!\n\n");
+                        send(clientSocket, "Aposta apagada!\n\n", 30, 0);
+                    }
+                    else{
+                        printf("Erro: Aposta não foi apagada!\n\n");
+                        send(clientSocket, "Erro: Aposta não foi apagada!\n\n", 30, 0);
+                    }
+                }
+                else{//Voltar
+                    fclose(file);
+                }
             }
             //Se não encontrou o arquivo
             else{
             printf("CPF não foi encontrado.\n\n");
             send(clientSocket, "Seu CPF não foi encontrado.\n\n", 30, 0);
             }
-
         }
         else{
-
         // Fechando o socket do cliente
         printf("Cliente %d encerrou a conexão\n", id);
         closesocket(clientSocket);
+        return;
         }
     }
 }

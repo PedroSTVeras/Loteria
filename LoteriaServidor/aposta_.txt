@@ -1,0 +1,4 @@
+Nome: 123
+CPF: 
+Números apostados: 
+Valor da aposta: R$.00

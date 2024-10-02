@@ -23,7 +23,7 @@
 	<pthread.h>
 	<locale.h>
 
-1727898656 source:c:\users\pedro\documents\loteria\loteriacliente\clienttest.cpp
+1727901119 source:c:\users\pedro\documents\loteria\loteriacliente\clienttest.cpp
 	<winsock2.h>
 	<ws2tcpip.h>
 	<stdio.h>
