@@ -1,0 +1,4 @@
+Nome: qwer
+CPF: 123.123.123-12
+Números apostados: 2, 2, 2, 2, 3, 3, 3, 3
+Valor da aposta: R$33,00

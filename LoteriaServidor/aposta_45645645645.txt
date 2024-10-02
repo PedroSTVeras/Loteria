@@ -1,0 +1,4 @@
+Nome: RTY
+CPF: 456.456.456-45
+Números apostados: 1, 2, 3, 4, 4, 6, 6, 13
+Valor da aposta: R$999,00

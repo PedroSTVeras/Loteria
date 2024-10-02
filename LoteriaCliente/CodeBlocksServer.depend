@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1727844753 source:c:\users\pedro\documents\codeblocksserver\servertest.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<winsock2.h>
+	<pthread.h>
+	<locale.h>
+
+1727844850 source:c:\users\pedro\documents\codeblocksserver\loteriaservidorcliente\servertest.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<winsock2.h>
+	<pthread.h>
+	<locale.h>
+
