@@ -192,10 +192,8 @@ void conaposta(SOCKET cs) {
 
     //Se servidor encontrou arquivo, mostrar ao cliente
     if (strcmp(msg, "Arquivo encontrado!\n")==0){
-        for (int i = 0; i<4; i++){//Esse 5 tem q trocar para o numero de linhas q o servido leu do arquivo
-            recv(cs, msg, sizeof(msg), 0);
-            printf("%s", msg);
-        }
+        recv(cs, msg, sizeof(msg), 0);
+        printf("%s", msg);
 
         //Pergunta o que fazer
         printf("\nO que deseja fazer?\n");
@@ -220,8 +218,8 @@ void conaposta(SOCKET cs) {
                 char aux[BUFFER_SIZE] = {0};
                 sprintf(aux,"%ld", novovaloraposta);
                 send(cs, aux, sizeof(aux), 0);
-                //modlinapos(apostaarc,4,novovaloraposta);
-
+                recv(cs, aux, sizeof(aux), 0);
+                printf("%s",aux);
 
                 break;
             }

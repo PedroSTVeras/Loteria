@@ -46,6 +46,7 @@ void modlinapos(const char *arcaposta,int linpost,char *valornov){
     for (int j = 0; j < i; j++)fputs(lins[j],file);
     fclose(file);
     printf("Novo valor de aposta salvo!\n\n");
+    return;
 }
 
 //Modifica os números da aposta
@@ -246,14 +247,16 @@ void handle_client(SOCKET clientSocket, int id) {
             FILE *file = fopen(apostaarc, "r");
             //Se encontrou o arquivo!
             if (file != NULL) {
-                char linhas[256];
+                char linhas[256] = {0};
                 printf("\nArquivo encontrado!\n");
+
                 //Enviar ao cliente os dados do arquivo
                 send(clientSocket, "Arquivo encontrado!\n", 30, 0);
                 while (fgets(linhas, sizeof(linhas), file)) {
                     printf("%s", linhas); //Escreve as linhas do arquivo
-                    send(clientSocket, linhas, sizeof(linhas), 0);
+
                 }
+                send(clientSocket, linhas, sizeof(linhas), 0);
 
                 //Alterar dados
                 char* opcao;
@@ -264,12 +267,9 @@ void handle_client(SOCKET clientSocket, int id) {
                     //Pegar o dinehiro q e vai ser alterado
                     recv(clientSocket, valornov, sizeof(valornov), 0);
                     printf("\nCliente %d quer alterar o valor apostado para %s\n", id, valornov);
-                    //Converter de char* para int
-                    //int novovaloraposta = atoi(valornov);
                     modlinapos(apostaarc,4,valornov);
+                    send(clientSocket, "Dados alterados com sucesso.\n\n", 30, 0);
                 }
-
-
             }
             //Se não encontrou o arquivo
             else{
