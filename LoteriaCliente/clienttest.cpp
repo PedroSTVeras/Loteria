@@ -297,11 +297,13 @@ int main(){
     // Enviando mensagem ao servidor
     send(clientSocket, buffer, strlen(buffer), 0);
 
-    // Recebendo resposta do servidor
+    // Recebendo resposta do servidor (Mensagem recebida com sucesso!)
     char response[BUFFER_SIZE];
     int bytesReceived = recv(clientSocket, response, BUFFER_SIZE, 0);
     response[bytesReceived] = '\0'; // Null-terminando a string
     std::cout << "Resposta do servidor: " << response << std::endl;
+
+
 
     // Fechando o socket
     closesocket(clientSocket);

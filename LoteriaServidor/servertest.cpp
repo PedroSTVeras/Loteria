@@ -1,5 +1,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <thread>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -259,13 +260,28 @@ void conaposta() {
     }
 }
 
+//Lida com o cliente após se conectar (threads)
+void handle_client(SOCKET clientSocket) {
+    char message[1024] = {0};
+
+    // Recebendo mensagem do cliente
+    recv(clientSocket, message, sizeof(message), 0);
+    std::cout << "Mensagem recebida do cliente: " << message << std::endl;
+
+    // Enviando resposta ao cliente
+    const char *reply = "Mensagem recebida com sucesso!";
+    send(clientSocket, reply, strlen(reply), 0);
+
+    // Fechando o socket do cliente
+    closesocket(clientSocket);
+}
+
 int main(){
     setlocale(LC_ALL, "Portuguese");
 
     WSADATA wsaData;
     SOCKET serverSocket, clientSocket;
     struct sockaddr_in serverAddr, clientAddr;
-    int addrLen = sizeof(clientAddr);
     char buffer[BUFFER_SIZE];
 
     // Inicializando a Winsock
@@ -298,37 +314,25 @@ int main(){
         return 1;
     }
 
-    // Escutando por conexões...
-    if (listen(serverSocket, 3) < 0) {
-        printf("Erro ao escutar.");
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-    else{
-        printf("\nServidor escutando na porta %d...", PORT);
-    }
+    // Escutando conexões
+    listen(serverSocket, 3);
+    std::cout << "Aguardando conexões..." << std::endl;
 
-    // Aceitando uma conexão
-    clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
-    if (clientSocket < 0) {
-        printf("Erro ao aceitar conexão.");
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-    else{
-        printf("\n\nConexão aceita!");
-    }
+    int c = sizeof(struct sockaddr_in);
 
-    // Recebendo mensagem do cliente
-    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
-    buffer[bytesReceived] = '\0'; // Null-terminating the string
-    printf("\nMensagem recebida: %s", buffer);
+    // Loop infinito para aceitar múltiplos clientes (threads)
+    while (true) {
+        clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &c);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "Falha ao aceitar conexão. Código de erro: " << WSAGetLastError() << std::endl;
+            continue;
+        }
+        std::cout << "Conexão aceita!" << std::endl;
 
-    // Enviando resposta ao cliente
-    const char* response = "Mensagem recebida com sucesso!";
-    send(clientSocket, response, strlen(response), 0);
+        // Criar uma nova thread para lidar com o cliente
+        std::thread clientThread(handle_client, clientSocket);
+        clientThread.detach(); // Permite que a thread rode independentemente
+    }
 
     // Fechando sockets
     closesocket(clientSocket);
