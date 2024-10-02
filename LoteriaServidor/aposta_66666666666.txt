@@ -1,0 +1,4 @@
+Nome: qwert
+CPF: 666.666.666-66
+Números apostados: 5, 5, 5, 5, 5, 5, 5, 5
+Valor da aposta: R$5.00

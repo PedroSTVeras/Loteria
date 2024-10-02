@@ -168,23 +168,33 @@ void aposta(SOCKET cs){
 }
 
 //Consultar Aposta
-void conaposta() {
+void conaposta(SOCKET cs) {
+    char msg[BUFFER_SIZE] = {0};
     char cpf[11];
     char apostaarc[30];
     int apostan [8];
     char linhas[256];
     int opera;
 
+    //Pede CPF do cliente para encontrar aposta
     printf("\nInsira o CPF da aposta que deseja consultar (11 dígitios, sem hífen ou pontos):\n");
     scanf("%s", cpf);
+    //Verifica se o CPF é válido (11 dígitos), se n for, pede denovo
+    while(strlen(cpf)!=11){
+        printf("\nInsira um CPF válido (11 dígitios, sem hífen ou pontos):\n");
+        scanf("%s",cpf);
+    }
+    send(cs, cpf, strlen(cpf), 0); //Envia CPF
 
-    //Procurando arquivo com o CPF
-    snprintf(apostaarc, sizeof(apostaarc), "aposta_%s.txt", cpf);
-    FILE *file = fopen(apostaarc, "r");
-    if (file != NULL) {
-        printf("\nArquivo encontrado!\n");
-        while (fgets(linhas, sizeof(linhas), file)) {
-            printf("%s", linhas); //Escreve as linhas do arquivo
+    //Espera mensagem do servidor para saber se achou a aposta ou não
+    recv(cs, msg, sizeof(msg), 0);
+    printf("\nServidor: %s\n", msg);
+
+    //Se servidor encontrou arquivo, mostrar ao cliente
+    if (strcmp(msg, "Arquivo encontrado!\n")==0){
+        for (int i = 0; i<5; i++){//Esse 4 tem q trocar para o numero de linhas q o servido leu do arquivo
+            recv(cs, msg, sizeof(msg), 0);
+            printf("%s", msg);
         }
 
         //Pergunta o que fazer
@@ -205,7 +215,6 @@ void conaposta() {
                     scanf("%f", &novovaloraposta);
                 }
                 modlinapos(apostaarc,4,novovaloraposta);
-                fclose(file);
                 break;
 
             case 2:
@@ -236,12 +245,10 @@ void conaposta() {
                     }
                 }
                 modnum(apostaarc,4,apostan);
-                fclose(file);
                 break;
 
             case 3:
                 //Apagar aposta/arquivo
-                fclose(file);
                 if (remove(apostaarc) == 0)
                     printf("Aposta apagada!\n\n");
                 else
@@ -253,9 +260,6 @@ void conaposta() {
                 printf("\n");
                 break;
         }
-    }
-    else{
-        printf("CPF não foi encontrado.\n\n");
     }
 }
 
@@ -320,7 +324,8 @@ int main(){
             break;
             //Consulta uma aposta
             case 2:
-            conaposta();
+            send(clientSocket, "Consultar aposta", 16, 0);
+            conaposta(clientSocket);
             break;
             //Fecha a conexão
             case 3:

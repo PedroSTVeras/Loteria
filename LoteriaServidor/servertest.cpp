@@ -263,6 +263,8 @@ void conaposta() {
 //Lida com o cliente após se conectar (threads)
 void handle_client(SOCKET clientSocket, int id) {
     char msg[BUFFER_SIZE] = {0};
+    char apostaarc[30];
+    int apostan [8];
 
     // Recebendo mensagem do cliente
     recv(clientSocket, msg, sizeof(msg), 0);
@@ -323,12 +325,47 @@ void handle_client(SOCKET clientSocket, int id) {
             fclose(arcaposta);
             printf("Aposta registrada com sucesso em %s\n\n", filename);
         }
+        //Consultar arquivo de apostas e alterar itens
+        else if (strcmp(msg, "Consultar aposta")==0){
+            //Receber mensagem com o CPF
+            printf("\nEsperando receber o CPF para verificar arquivos...\n");
+            char cpf[BUFFER_SIZE] = {0};
+            recv(clientSocket, cpf, sizeof(cpf), 0);
+            printf("CPF do cliente %d é %s\n", id, cpf);
+
+            //Procurando arquivo com o CPF
+            snprintf(apostaarc, sizeof(apostaarc), "aposta_%s.txt", cpf);
+            FILE *file = fopen(apostaarc, "r");
+            //Se encontrou o arquivo!
+            if (file != NULL) {
+                char linhas[256];
+                printf("\nArquivo encontrado!\n");
+                //Enviar ao cliente os dados do arquivo
+                send(clientSocket, "Arquivo encontrado!\n", 30, 0);
+                while (fgets(linhas, sizeof(linhas), file)) {
+                    printf("%s", linhas); //Escreve as linhas do arquivo
+                    send(clientSocket, linhas, sizeof(linhas), 0);
+                }
+
+
+
+
+
+            }
+            //Se não encontrou o arquivo
+            else{
+            printf("CPF não foi encontrado.\n\n");
+            send(clientSocket, "Seu CPF não foi encontrado.\n\n", 30, 0);
+            }
+
+        }
+        else{
+
+        // Fechando o socket do cliente
+        printf("Cliente %d encerrou a conexão\n", id);
+        closesocket(clientSocket);
+        }
     }
-
-
-    // Fechando o socket do cliente
-    printf("Cliente %d encerrou a conexão\n", id);
-    closesocket(clientSocket);
 }
 
 int main(){
