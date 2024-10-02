@@ -1,15 +1,19 @@
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winsock2.h>
-#include <pthread.h>
+#include <string>
+#include <iostream>
 #include <locale.h>
+using namespace std;
 
-#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 
 #define linapost 4
 #define buflin 256
-#define PORT 443
+#define PORT 8080
 #define BUFFER_SIZE 1024
 
 //Modificar o valor (dinheiro) da aposta
@@ -257,6 +261,52 @@ void conaposta() {
 
 int main(){
     setlocale(LC_ALL, "Portuguese");
+
+    WSADATA wsaData;
+    SOCKET clientSocket;
+    struct sockaddr_in serverAddr;
+    char buffer[BUFFER_SIZE] = "Olá, servidor!";
+
+    // Inicializando a Winsock
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "Falha ao iniciar Winsock." << std::endl;
+        return 1;
+    }
+
+    // Criando o socket
+    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket == INVALID_SOCKET) {
+        std::cerr << "Erro ao criar socket." << std::endl;
+        WSACleanup();
+        return 1;
+    }
+
+    // Configurando o endereço do servidor
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(PORT);
+    //inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr); // Conectar ao localhost
+
+    // Conectando ao servidor
+    if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        std::cerr << "Erro ao conectar ao servidor." << std::endl;
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Enviando mensagem ao servidor
+    send(clientSocket, buffer, strlen(buffer), 0);
+
+    // Recebendo resposta do servidor
+    char response[BUFFER_SIZE];
+    int bytesReceived = recv(clientSocket, response, BUFFER_SIZE, 0);
+    response[bytesReceived] = '\0'; // Null-terminando a string
+    std::cout << "Resposta do servidor: " << response << std::endl;
+
+    // Fechando o socket
+    closesocket(clientSocket);
+    WSACleanup();
 
     int opera = 0;
     int idap = 1;

@@ -15,3 +15,23 @@
 	<pthread.h>
 	<locale.h>
 
+1727851739 source:c:\users\pedro\documents\loteria\loteriaservidor\servertest.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<winsock2.h>
+	<pthread.h>
+	<locale.h>
+	<sys/time.h>
+	<unistd.h>
+
+1727873123 source:c:\users\pedro\documents\loteria\loteriaservidor\servertest.cpp
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<string>
+	<iostream>
+	<locale.h>
+	<winsock2.h>
+	<ws2tcpip.h>
+

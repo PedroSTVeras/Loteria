@@ -1,15 +1,19 @@
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <winsock2.h>
-#include <pthread.h>
+#include <string>
+#include <iostream>
 #include <locale.h>
+using namespace std;
 
-#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 
 #define linapost 4
 #define buflin 256
-#define PORT 443
+#define PORT 8080
 #define BUFFER_SIZE 1024
 
 //Modificar o valor (dinheiro) da aposta
@@ -258,28 +262,70 @@ void conaposta() {
 int main(){
     setlocale(LC_ALL, "Portuguese");
 
-    int opera = 0;
-    int idap = 1;
-    while(opera != 3){
-        printf("BEM VINDO A APOSTAS TOTALMENTE LEGÍTIMAS\nO que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair \n");
-        scanf("%d",&opera);
-        switch(opera){
-            case 1:
-            aposta(idap++);
-            //printf("Aposta concluída, o que deseja fazer?\n 1- Apostar\n 2- Consultar aposta\n 3- Sair \n");
-            break;
-            case 2:
-            conaposta();
-            break;
-            case 3:
-            opera = 3;
-            break;
-            default:
-                while(opera<1 || opera>3){
-                    printf("\nOperação inválida, insira uma opção válida (1, 2, 3):\n");
-                    break;
-                }
-        }
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    struct sockaddr_in serverAddr, clientAddr;
+    int addrLen = sizeof(clientAddr);
+    char buffer[BUFFER_SIZE];
+
+    // Inicializando a Winsock
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        printf("Falha ao iniciar Winsock.");
+        return 1;
     }
+
+    // Criando o socket
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        printf("Erro ao criar socket.");
+        WSACleanup();
+        return 1;
+    }
+
+    // Configurando o endereço do servidor
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT);
+
+    // Associando o socket ao endereço
+    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        printf("Erro ao associar socket.");
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Escutando por conexões
+    if (listen(serverSocket, 3) < 0) {
+        printf("Erro ao escutar.");
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+    printf("Servidor escutando na porta %d...", PORT);
+
+    // Aceitando uma conexão
+    clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
+    if (clientSocket < 0) {
+        printf("Erro ao aceitar conexão.");
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Recebendo mensagem do cliente
+    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+    buffer[bytesReceived] = '\0'; // Null-terminating the string
+    printf("Mensagem recebida: ");
+
+    // Enviando resposta ao cliente
+    const char* response = "Mensagem recebida com sucesso!";
+    send(clientSocket, response, strlen(response), 0);
+
+    // Fechando sockets
+    closesocket(clientSocket);
+    closesocket(serverSocket);
+    WSACleanup();
+
     return 0;
 }
