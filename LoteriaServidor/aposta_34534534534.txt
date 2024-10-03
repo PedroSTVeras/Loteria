@@ -1,0 +1,4 @@
+Nome: ert
+CPF: 345.345.345-34
+Números apostados: 1, 1, 1, 1, 12, 13, 14, 14
+Valor da aposta: R$567.00

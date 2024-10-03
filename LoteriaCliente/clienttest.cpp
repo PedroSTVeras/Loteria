@@ -73,15 +73,9 @@ void aposta(SOCKET cs){
     int aux = 0;
     for(int i = 0; i <7; i++){
         printf("%d, ",apostan[i]);
-        apostaSend[aux] = apostan[i] + '0';
-        aux++;
-        apostaSend[aux] = ',';
-        aux++;
-        apostaSend[aux] = ' ';
-        aux++;
     }
+    snprintf(apostaSend, sizeof(apostaSend), "%d, %d, %d, %d, %d, %d, %d, %d",apostan[0], apostan[1], apostan[2],apostan[3], apostan[4], apostan[5],apostan[6], apostan[7]);
     printf("%d.\n",apostan[7]);
-    apostaSend[aux] = apostan[7] + '0';
     send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
 
     //DINHEIRO A SER APOSTADO
@@ -94,7 +88,7 @@ void aposta(SOCKET cs){
         printf("\nInsira um valor válido!\n");
         if(valoraposta<1)printf("Motivo: O valor mínimo da aposta é R$1\nR$");
         if(valoraposta>1000)printf("Motivo: O valor excede o limite de R$1000\nR$");
-        scanf("%f",&valoraposta);
+        scanf("%d",&valoraposta);
     }
     char money[6] = {0};
     sprintf(money,"%ld", valoraposta);
@@ -197,15 +191,11 @@ void conaposta(SOCKET cs) {
                 int aux = 0;
                 for(int i = 0; i <7; i++){
                     printf("%d, ",apostan[i]);
-                    apostaSend[aux] = apostan[i] + '0';
-                    aux++;
-                    apostaSend[aux] = ',';
-                    aux++;
-                    apostaSend[aux] = ' ';
-                    aux++;
                 }
                 printf("%d.\n",apostan[7]);
-                apostaSend[aux] = apostan[7] + '0';
+
+                snprintf(apostaSend, sizeof(apostaSend), "%d, %d, %d, %d, %d, %d, %d, %d",apostan[0], apostan[1], apostan[2],apostan[3], apostan[4], apostan[5],apostan[6], apostan[7]);
+
                 send(cs, apostaSend, strlen(apostaSend), 0); //Envia numeros apostados
                 recv(cs, apostaSend, sizeof(apostaSend), 0); //Recebe se a troca teve sucesso
                 printf("%s",apostaSend);
